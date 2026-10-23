@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b7a85">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>باقتي</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@500;700&family=Tajawal:wght@400;500;700&display=swap">
+<style>
+/* Layout: one phone-width column, centered on large screens. Login screen, then a home screen with the plan ring, 7-day usage, renewal form and request list. */
+:root {
+  --bg: #eef3f5;
+  --surface: #ffffff;
+  --surface-2: #e4ecef;
+  --fg: #12232b;
+  --muted: #53666f;
+  --line: #cfdce1;
+  --accent: #0b7a85;
+  --accent-fg: #ffffff;
+  --ok: #1d7a4a;
+  --warn: #a15c00;
+  --bad: #b3261e;
+  --font-display: "Readex Pro", "Tajawal", system-ui, sans-serif;
+  --font-body: "Tajawal", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d181d; --surface: #15252c; --surface-2: #1d3039; --fg: #e6f0f3; --muted: #9bb0b8;
+    --line: #2a424c; --accent: #3cc0cc; --accent-fg: #062226; --ok: #5cc98d; --warn: #f0b04a; --bad: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d181d; --surface: #15252c; --surface-2: #1d3039; --fg: #e6f0f3; --muted: #9bb0b8;
+  --line: #2a424c; --accent: #3cc0cc; --accent-fg: #062226; --ok: #5cc98d; --warn: #f0b04a; --bad: #ff8a80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-block: 16px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; line-height: 1.3; }
+h2 { font-size: 1.05rem; }
+.demo-note { font-size: .85rem; color: var(--muted); background: var(--surface-2); border-radius: 8px; padding: 8px 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+label { font-weight: 500; font-size: .95rem; }
+input[type=text], input[type=password] {
+  width: 100%; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px; margin-top: 4px;
+}
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button { font: inherit; cursor: pointer; }
+.btn { background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 700; width: 100%; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn-quiet { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; font-size: .85rem; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.top h1 { font-size: 1.15rem; }
+.sub { color: var(--muted); font-size: .9rem; }
+
+/* plan summary */
+.plan { display: flex; gap: 16px; align-items: center; }
+.ring { position: relative; width: 132px; height: 132px; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .track { stroke: var(--surface-2); }
+.ring .bar { stroke: var(--accent); transition: stroke-dashoffset .6s ease; }
+.ring .bar.warn { stroke: var(--warn); }
+.ring .bar.bad { stroke: var(--bad); }
+.ring-label { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1.15; }
+.ring-label b { font-family: var(--font-display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.ring-label span { font-size: .8rem; color: var(--muted); }
+.facts { display: grid; gap: 8px; min-width: 0; flex: 1; }
+.fact small { display: block; color: var(--muted); font-size: .8rem; }
+.fact strong { font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; border-radius: 99px; padding: 2px 10px; font-size: .8rem; font-weight: 700; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); }
+
+/* 7-day usage */
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; height: 120px; margin-top: 12px; }
+.day { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; min-width: 0; }
+.day i { display: block; width: 100%; background: var(--accent); border-radius: 5px 5px 2px 2px; opacity: .85; }
+.day.today i { opacity: 1; outline: 2px solid var(--accent); outline-offset: 2px; }
+.day span { font-size: .72rem; color: var(--muted); white-space: nowrap; }
+.day em { font-style: normal; font-size: .72rem; font-variant-numeric: tabular-nums; }
+
+/* renewal */
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; min-width: 0; }
+legend { font-weight: 700; padding: 0; margin-bottom: 6px; }
+.opt { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--surface-2); }
+.opt input { accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
+.opt .grow { flex: 1; min-width: 0; }
+.opt .price { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.pay-info { font-size: .9rem; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.pay-info code { font-family: ui-monospace, monospace; direction: ltr; unicode-bidi: embed; user-select: all; font-weight: 700; }
+.file { display: grid; gap: 8px; }
+.file input { width: 100%; font: inherit; }
+.preview { max-height: 160px; border-radius: 10px; border: 1px solid var(--line); object-fit: contain; background: var(--bg); }
+.msg { font-size: .9rem; padding: 8px 12px; border-radius: 8px; background: var(--surface-2); }
+
+/* requests */
+.reqs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.reqs li { display: flex; justify-content: space-between; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 8px; }
+.reqs li:first-child { border-top: 0; padding-top: 0; }
+.reqs .meta { min-width: 0; }
+.reqs .meta small { display: block; color: var(--muted); font-size: .8rem; }
+</style>
+</head>
+<body>
+
+<div class="app" dir="rtl" lang="ar">
+  <p class="demo-note">نسخة تجريبية بأرقام وبيانات وهمية. مفيش اتصال بأي راوتر حقيقي، والغرض إنك تشوف شكل التطبيق.</p>
+
+  <!-- login -->
+  <section id="login" class="stack">
+    <div class="card stack">
+      <h1>باقتي</h1>
+      <p class="sub" style="margin:0">ادخل باسم المستخدم وكلمة السر اللي استلمتهم من صاحب الشبكة، وهتشوف بيانات اشتراكك إنت بس.</p>
+      <form id="loginForm" class="stack" autocomplete="off">
+        <div>
+          <label for="u">اسم المستخدم</label>
+          <input id="u" type="text" value="mohamed1204" dir="ltr" autocapitalize="off">
+        </div>
+        <div>
+          <label for="p">كلمة السر</label>
+          <input id="p" type="password" value="demo1234" dir="ltr">
+        </div>
+        <button class="btn" type="submit">دخول</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- home -->
+  <section id="home" class="stack" hidden>
+    <div class="top">
+      <div>
+        <h1>أهلًا <span id="who">mohamed1204</span></h1>
+        <div class="sub">آخر تحديث: النهارده الساعة <span id="clock">5:56</span> ص</div>
+      </div>
+      <button class="btn-quiet" id="logout" type="button">خروج</button>
+    </div>
+
+    <div class="card">
+      <div class="plan">
+        <div class="ring" role="img" aria-label="الجيجات المتبقية 18.4 من 40">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="track" cx="60" cy="60" r="52" fill="none" stroke-width="12"></circle>
+            <circle class="bar" id="bar" cx="60" cy="60" r="52" fill="none" stroke-width="12" stroke-linecap="round"></circle>
+          </svg>
+          <div class="ring-label"><b id="left">18.4</b><span>جيجا باقية</span></div>
+        </div>
+        <div class="facts">
+          <div class="fact"><small>الباقة</small><strong>40 جيجا / 30 يوم</strong></div>
+          <div class="fact"><small>ينتهي في</small><strong>الأحد 1 نوفمبر 2026</strong></div>
+          <div class="fact"><small>المتبقي من المدة</small><strong id="daysLeft">9 أيام</strong> <span id="status" class="pill ok">شغال</span></div>
+        </div>
+      </div>
+      <p class="sub" style="margin:12px 0 0" id="hint">استهلكت 21.6 جيجا من 40.</p>
+    </div>
+
+    <div class="card">
+      <h2>استهلاكك آخر 7 أيام (بالجيجا)</h2>
+      <div class="days" id="days"></div>
+    </div>
+
+    <form class="card stack" id="renewForm">
+      <h2>جدّد اشتراكك</h2>
+      <fieldset>
+        <legend>1. اختار الباقة</legend>
+        <label class="opt"><input type="radio" name="plan" value="40 جيجا"><span class="grow">40 جيجا / 30 يوم</span><span class="price">150 ج</span></label>
+        <label class="opt"><input type="radio" name="plan" value="80 جيجا"><span class="grow">80 جيجا / 30 يوم</span><span class="price">250 ج</span></label>
+        <label class="opt"><input type="radio" name="plan" value="150 جيجا"><span class="grow">150 جيجا / 30 يوم</span><span class="price">400 ج</span></label>
+      </fieldset>
+      <fieldset>
+        <legend>2. اختار طريقة التحويل</legend>
+        <label class="opt"><input type="radio" name="pay" value="فودافون كاش"><span class="grow">فودافون كاش</span></label>
+        <label class="opt"><input type="radio" name="pay" value="اتصالات كاش"><span class="grow">اتصالات كاش</span></label>
+        <label class="opt"><input type="radio" name="pay" value="إنستا باي"><span class="grow">إنستا باي</span></label>
+        <div class="pay-info" id="payInfo" hidden>حوّل المبلغ على الرقم <code>01000000000</code> (رقم تجريبي)، وصوّر شاشة التحويل.</div>
+      </fieldset>
+      <div class="file">
+        <label for="receipt"><b>3. ارفع صورة الإيصال</b></label>
+        <input id="receipt" type="file" accept="image/*">
+        <img id="preview" class="preview" alt="معاينة الإيصال" hidden>
+      </div>
+      <button class="btn" id="send" type="submit" disabled>ابعت طلب التجديد</button>
+      <div class="msg" id="msg" hidden></div>
+    </form>
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">طلباتك</h2>
+      <ul class="reqs" id="reqs">
+        <li><div class="meta">باقة 40 جيجا<small>فودافون كاش • 1 أكتوبر 2026</small></div><span class="pill ok">اتقبل</span></li>
+        <li><div class="meta">باقة 40 جيجا<small>إنستا باي • 1 سبتمبر 2026</small></div><span class="pill ok">اتقبل</span></li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var TOTAL = 40, LEFT = 18.4, DAYS = 9;
+  var usage = [["سبت", 2.4], ["أحد", 3.8], ["اثنين", 1.9], ["ثلاثاء", 4.6], ["أربع", 3.2], ["خميس", 3.9], ["جمعة", 1.8]];
+
+  function drawRing() {
+    var r = 52, c = 2 * Math.PI * r, frac = LEFT / TOTAL, bar = $("bar");
+    bar.style.strokeDasharray = c.toFixed(1);
+    bar.style.strokeDashoffset = c.toFixed(1);
+    requestAnimationFrame(function () { bar.style.strokeDashoffset = (c * (1 - frac)).toFixed(1); });
+    bar.classList.toggle("warn", frac <= 0.3 && frac > 0.1);
+    bar.classList.toggle("bad", frac <= 0.1);
+    var st = $("status");
+    if (frac <= 0.1 || DAYS <= 2) { st.textContent = "قرّب يخلص"; st.className = "pill bad"; }
+    else if (frac <= 0.3 || DAYS <= 5) { st.textContent = "خلّي بالك"; st.className = "pill warn"; }
+  }
+
+  function drawDays() {
+    var max = Math.max.apply(null, usage.map(function (d) { return d[1]; }));
+    $("days").innerHTML = usage.map(function (d, i) {
+      var h = Math.round((d[1] / max) * 78) + 6;
+      return '<div class="day' + (i === usage.length - 1 ? " today" : "") + '"><em>' + d[1].toFixed(1) +
+        '</em><i style="height:' + h + 'px"></i><span>' + d[0] + "</span></div>";
+    }).join("");
+  }
+
+  function check() {
+    var ok = document.querySelector('input[name=plan]:checked') && document.querySelector('input[name=pay]:checked') && $("receipt").files.length;
+    $("send").disabled = !ok;
+  }
+
+  $("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = $("u").value.trim() || "مشترك";
+    $("who").textContent = name;
+    $("login").hidden = true;
+    $("home").hidden = false;
+    drawRing(); drawDays();
+  });
+  $("logout").addEventListener("click", function () {
+    $("home").hidden = true; $("login").hidden = false;
+  });
+  document.querySelectorAll('input[name=pay]').forEach(function (r) {
+    r.addEventListener("change", function () { $("payInfo").hidden = false; check(); });
+  });
+  document.querySelectorAll('input[name=plan]').forEach(function (r) { r.addEventListener("change", check); });
+  $("receipt").addEventListener("change", function () {
+    var f = this.files[0], img = $("preview");
+    if (!f) { img.hidden = true; check(); return; }
+    var fr = new FileReader();
+    fr.onload = function () { img.src = fr.result; img.hidden = false; };
+    fr.readAsDataURL(f);
+    check();
+  });
+  $("renewForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var plan = document.querySelector('input[name=plan]:checked').value;
+    var pay = document.querySelector('input[name=pay]:checked').value;
+    var li = document.createElement("li");
+    li.innerHTML = '<div class="meta">باقة ' + plan + '<small>' + pay + ' • النهارده</small></div><span class="pill warn">تحت المراجعة</span>';
+    $("reqs").insertBefore(li, $("reqs").firstChild);
+    var m = $("msg");
+    m.textContent = "وصل طلبك. صاحب الشبكة هيراجع الإيصال، وأول ما يوافق الباقة بتتجدد وتوصلك رسالة.";
+    m.hidden = false;
+    this.reset();
+    $("preview").hidden = true; $("payInfo").hidden = true; $("send").disabled = true;
+  });
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
+</script>
+</body>
+</html>
